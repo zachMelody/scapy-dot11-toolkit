@@ -1,41 +1,14 @@
 from multiprocessing import Process
 from scapy.all import Dot11, RadioTap, Dot11Elt, Dot11Beacon, Dot11ProbeResp  # escape ide warning
 from scapy.all import *
-import logging
+from BaseFrame import BaseFrame
 import signal
 import utils
-logging.getLogger("scapy.runtime").setLevel(logging.INFO)
 
 
-class Beacon:
+class Beacon(BaseFrame):
     def __init__(self, interface):
-        self.interface = interface if 'mon' in interface else interface + 'mon'
-        conf.iface = self.interface
-        self.networks = list()
-        self._known_bssids = list()
-        self._channels = [1, 2]
-        self._cur_channel = 1
-        self._stop_sniff = False
-        self._hopper = None
-
-    def channel_hopper(self):
-        while True:
-            try:
-                self._cur_channel = random.randrange(1, 13)
-                cmd = "iwconfig %s channel %d" % (self.interface, self._cur_channel)
-                os.system(cmd)
-                time.sleep(1)
-            except KeyboardInterrupt:
-                break
-
-    def stop_channel_hop(self, signal, frame):
-        # set the stop_sniff variable to True to stop the sniffer
-        self._stop_sniff = True
-        self._hopper.terminate()
-        self._hopper.join()
-
-    def keep_sniffing(self, pckt):
-        return self._stop_sniff
+        super(Beacon, self).__init__(interface)
 
     def sniff(self):
         self._stop_sniff = False
@@ -52,7 +25,7 @@ class Beacon:
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     def add_network(self, pckt):
-        #pckt.show()
+        # pckt.show()
         # Check to see if it's a hidden SSID
         raw_essid = pckt[Dot11Elt].info.decode("utf-8")
         essid = raw_essid.strip() if '\x00' not in raw_essid and raw_essid != '' else 'Hidden SSID'
@@ -73,14 +46,14 @@ class Beacon:
             self.networks.append(ap_info)
             utils.print_one_ap_info(ap_info)
 
-    def send(self, name='Input your SSID'):
-        randon_mac = utils.rand_mac()
+    def send(self, ssid='Input your SSID'):
+        random_mac_addr = utils.rand_mac()
 
-        dot11 = Dot11(type=0, subtype=8,  # type 0 management | subtype beacon
+        dot11 = Dot11(type=0, subtype=8,  # type : management frame, subtype: beacon frame
                       addr1='ff:ff:ff:ff:ff:ff',
-                      addr2=randon_mac, addr3=randon_mac)
+                      addr2=random_mac_addr, addr3=random_mac_addr)
         beacon = Dot11Beacon()
-        essid = Dot11Elt(ID='SSID', info=name, len=len(name))
+        essid = Dot11Elt(ID='SSID', info=ssid, len=len(ssid))
         rsn = Dot11Elt(ID='RSNinfo', info=(
             '\x01\x00'
             '\x00\x0f\xac\x02'
@@ -96,6 +69,6 @@ class Beacon:
 
 if __name__ == '__main__':
     beacon = Beacon(interface='wlan0mon')
-    beacon.send('FUNC BEACON>SEND')
+    # beacon.send(ssid='Test SEBD')
     beacon.sniff()
     utils.show_all_networks(beacon.networks)

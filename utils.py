@@ -27,8 +27,7 @@ def rand_mac():
 def print_one_ap_info(ap_info):
     channel, essid, bssid, quality = ap_info['channel'], ap_info['essid'], ap_info['bssid'], str(ap_info['quality'])
     print("\r{0:5}\t{1:20}\t{2:20}\t{3:5}".format(
-        channel, essid, bssid, str(quality) + '%'
-    ), end='')
+        channel, essid, bssid, str(quality) + '%'))
 
 
 def show_all_networks(networks):
@@ -38,6 +37,10 @@ def show_all_networks(networks):
         channel, essid, bssid, quality = ap_info['channel'], ap_info['essid'], ap_info['bssid'], str(ap_info['quality'])
         tb.add_row([idx, channel, essid, bssid, str(quality)+'%'])
     print(tb)
+
+
+def show_all_ap_sta_relation(networks):
+    pass
 
 
 def sort_networks(networks):

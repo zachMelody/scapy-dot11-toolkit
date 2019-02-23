@@ -1,4 +1,5 @@
-from Beacon import Beacon
+from scapy.all import *
+import Beacon
 from Deauthentication import Deauthentication
 import os
 import multiprocessing as mp
@@ -23,11 +24,13 @@ class Melody(object):
         else:
             if 'mon' in check_result:
                 print('INTERFACE FOUND')
-                self.interface += 'mon'
+                self.interface
+                conf.iface = self.interface
             else:
                 os.system('airmon-ng check kill')
                 os.system(start_cmdline)
                 self.interface += 'mon'
+                conf.iface = self.interface
 
     def flood(self, workers=10):
         senders = list()
@@ -63,11 +66,7 @@ class Melody(object):
 
 
 if __name__ == '__main__':
-    interface = "wlan0"
-    m = Melody(interface=interface)
+    iface = "wlan0mon"
+    m = Melody(interface=iface)
     m.set_monitor_mode()
     m.deauth()
-
-
-
-
